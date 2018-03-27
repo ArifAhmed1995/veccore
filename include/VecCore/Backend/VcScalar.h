@@ -105,6 +105,27 @@ Vc::Scalar::Mask<T> IsInf(const Vc::Scalar::Vector<T> &x)
 {
   return Vc::isinf(x);
 }
+
+template <typename T>
+VECCORE_FORCE_INLINE
+Vc::Scalar::Vector<T> Breit_Wigner(const Vc::Scalar::Vector<T> &x,
+                                   const Vc::Scalar::Vector<T> &mean,
+                                   const Vc::Scalar::Vector<T> &gamma)
+{
+  using M = Vc::Scalar::Mask<T>;
+  using V = Vc::Scalar::Vector<T>;
+
+  V result;
+  V dev = (x - mean) / gamma;
+  M mask_dev = !(dev < T(-1.e19) || dev > T(1.e19));
+
+  V num = T(0.15915494309189535f)/gamma;
+  V denom = (x - mean) * (x - mean) / (gamma * gamma) + 1 / T(4.0f);
+  MaskedAssign(result, mask_dev, num / denom);
+
+  return result;
+}
+
 }
 
 } // namespace vecCore
