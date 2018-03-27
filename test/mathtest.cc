@@ -93,7 +93,43 @@ double uniform_random(double a, double b)
     }                                                                 \
   }
 
-#define TEST_MATH_FUNCTION_2(F, f) TEST_MATH_FUNCTION_RANGE_2(F, f, FLT_MIN, FLT_MAX, FLT_MIN, FLT_MAX)
+#define TEST_BREIT_WIGNER_FUNCTION(func)                                                \
+    TYPED_TEST_P(MathFunctions, func)                                                   \
+    {                                                                                   \
+        using Scalar_t = typename TestFixture::Scalar_t;                                \
+        using Vector_t = typename TestFixture::Vector_t;                                \
+                                                                                        \
+        auto kVS = vecCore::VectorSize<Vector_t>();                                     \
+        size_t N = 2 * kVS;                                                             \
+        Scalar_t input1[N];                                                             \
+        Scalar_t input2[N];                                                             \
+        Scalar_t input3[N];                                                             \
+        Scalar_t output[N];                                                             \
+        Scalar_t scalar_compute_array[N];                                               \
+                                                                                        \
+        for (size_t i = 0; i < N; ++i) {                                                \
+            input1[i] = static_cast<Scalar_t>(uniform_random(FLT_MIN, FLT_MIN));        \
+            input2[i] = static_cast<Scalar_t>(uniform_random(FLT_MIN, FLT_MIN));        \
+            input3[i] = static_cast<Scalar_t>(uniform_random(FLT_MIN, FLT_MIN));        \
+            scalar_compute_array[i] = static_cast<Scalar_t>(0.15915494309189535f *\     \
+                                   (input1[i] / ( (input1[i]-input2[i]) *\              \
+                                   (input1[i]-input2[i]) + input3[i] * input3[i] / 4)));\
+        }                                                                               \
+                                                                                        \
+        for (size_t j = 0; j < N; j += kVS) {                                           \
+            Vector_t x(vecCore::FromPtr<Vector_t>(&input1[j]));                         \
+            Vector_t y(vecCore::FromPtr<Vector_t>(&input2[j]));                         \
+            Vector_t z(vecCore::FromPtr<Vector_t>(&input3[j]));                         \
+            Vector_t r = vecCore::math::func(x, y, z);                                  \
+            vecCore::Store<Vector_t>(r, &output[j]);                                    \
+        }                                                                               \
+                                                                                        \
+        for (size_t i = 0; i < N; ++i) {                                                \
+            EXPECT_FLOAT_EQ(output[i], scalar_compute_array[i]);                        \
+        }                                                                               \
+    }
+
+#define TEST_MATH_FUNCTION_2(F, f) TEST_MATH_FUNCTION_RANGE_2(F, f, FLT_MIN, FLT_MAX, FLT_MIN,FLT_MAX)
 
 // commented functions are not yet implemented in Vc, need to be implemented in VecCore
 
@@ -119,8 +155,11 @@ TEST_MATH_FUNCTION_2(ATan2, atan2);
 TEST_MATH_FUNCTION_2(CopySign, copysign);
 TEST_MATH_FUNCTION_2(Pow, pow);
 
+TEST_BREIT_WIGNER_FUNCTION(Breit_Wigner);
+
+
 REGISTER_TYPED_TEST_CASE_P(MathFunctions, Abs, Floor, Ceil, Sin, ASin, Cos, Tan, ATan, Exp, Log, Sqrt, Cbrt, ATan2, CopySign,
-                           Pow);
+                           Pow, Breit_Wigner);
 
 #define TEST_BACKEND_P(name, x) INSTANTIATE_TYPED_TEST_CASE_P(name, MathFunctions, FloatTypes<vecCore::backend::x>);
 

@@ -150,6 +150,25 @@ UME::SIMD::SIMDVec_f<T, N> Pow(const UME::SIMD::SIMDVec_f<T, N> &x, const UME::S
   return (x.log() * y).exp();
 }
 
+template <typename T, uint32_t N>
+UME::SIMD::SIMDVec_f<T, N> Breit_Wigner(const UME::SIMD::SIMDVec_f<T, N> &x,
+                                        const UME::SIMD::SIMDVec_f<T, N> &mean,
+                                        const UME::SIMD::SIMDVec_f<T, N> &gamma)
+{
+  using V = UME::SIMD::SIMDVec_f<T, N>;
+  using M = UME::SIMD::SIMDVecMask<N>;
+
+  V result;
+  V dev = (x - mean) / gamma;
+  M mask_dev = !(dev < T(-1.e19) || dev > T(1.e19));
+
+  V num = T(0.15915494309189535f) / gamma;
+  V denom = (x - mean) * (x - mean) / (gamma * gamma) + 1 / T(4.0f);
+  Assign(result, mask_dev, num / denom);
+
+  return result;
+}
+
 #define UMESIMD_REAL_FUNC(f, name)                                                                \
   template <typename T, uint32_t N>                                                               \
   VECCORE_FORCE_INLINE typename UME::SIMD::SIMDVec_f<T, N> f(const UME::SIMD::SIMDVec_f<T, N> &x) \

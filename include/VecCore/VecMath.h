@@ -451,6 +451,13 @@ constexpr T Rad(const T &x)
   return (x * T(M_PI / 180.0));
 }
 
+template <typename T>
+VECCORE_FORCE_INLINE
+VECCORE_ATT_HOST_DEVICE
+constexpr T Breit_Wigner(const T &x, const T &mean, const T &gamma)
+{
+  return T(0.15915494309189535f) * (gamma / ( (x-mean) * (x-mean) + gamma * T(gamma / 4)));
+}
 } // namespace math
 } // namespace vecCore
 
