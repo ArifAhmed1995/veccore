@@ -14,7 +14,7 @@ double uniform_random(double a, double b)
 #define BENCHMARK_MATH_FUNCTION_RANGE(mathfunc, impl, a, b)                    \
   void mathfunc##_##impl(benchmark::State &state)                              \
   {                                                                            \
-    using Vector_t = backend::impl::Float_v;                                   \
+    using Vector_t = backend::impl::Double_v;                                  \
     using Scalar_t = Scalar<Vector_t>;                                         \
                                                                                \
     constexpr size_t N = 1024;                                                 \
@@ -24,9 +24,11 @@ double uniform_random(double a, double b)
                                                                                \
     for(size_t i = 0; i < N; i++) {                                            \
       input[i] = static_cast<Scalar_t>(uniform_random(a, b));                  \
-      reference[i] = math::mathfunc(input[i]);                                 \
     }                                                                          \
                                                                                \
+    for(size_t i = 0; i < N; i++) {                                            \
+      reference[i] = math::mathfunc(input[i]);                                 \
+    }                                                                          \
     while (state.KeepRunning()) {                                              \
       for (size_t i = 0; i < N; i += VectorSize<Vector_t>()) {                 \
         Vector_t x;                                                            \
